@@ -123,6 +123,56 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &4326412
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4326414}
+  - component: {fileID: 4326413}
+  m_Layer: 0
+  m_Name: Einlagerung
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &4326413
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4326412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cf8b893194bca44881d344d03edd564, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  warenListe:
+  - name: Banane
+    anzahl: 10
+  - name: Fufu
+    anzahl: 100
+  sortierungsMode: 0
+--- !u!4 &4326414
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4326412}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -259,13 +309,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   roboterPrefab: {fileID: 5333352959780213515, guid: 25e6675ae273fe6438d764e73b4b2499, type: 3}
-  roboterProzentAnzahl: 0.6
+  roboterProzentAnzahl: 0.4
+  roboterSpeed: 1
   roboterBodenPrefab: {fileID: 107598632477295094, guid: afad6d4af1b935043a1eb2294874ec36, type: 3}
-  dicke: 0.067
-  farbe: {r: 1, g: 0, b: 0, a: 0.22745098}
+  dicke: 0.105
+  farbe: {r: 0.5377358, g: 0.5377358, b: 0.5377358, a: 0.22745098}
   cam: {fileID: 519420028}
   camHeightSpawnOffset: 10
-  camDepthSpawnOffset: 10
+  camDepthSpawnOffset: -10.5
   lookSpeed: 1.22
   moveSpeed: 10
   verticalSpeed: 5
@@ -274,15 +325,15 @@ MonoBehaviour:
   bodenPufferZ: 50
   regalPrefab: {fileID: 2634436964969735479, guid: f2f9fec781500384c86137d14878430a, type: 3}
   regalFarbe: {r: 1, g: 1, b: 1, a: 0}
-  regalAnzahl: 4
-  regalBreite: 2
-  regalHoehe: 8
-  regalLaenge: 8
-  regalAbstand: 4
+  regalAnzahl: 5
+  regalBreite: 2.17
+  regalHoehe: 23
+  regalLaenge: 61
+  regalAbstand: 5.1
   fachPrefab: {fileID: 4552685484616301096, guid: 0b668fd53f6460342a275ca69dec81e4, type: 3}
-  fach_size: 0.44
+  fach_size: 1.59
   fachTiefe: 0.055
-  fachAbstand: 0.52
+  fachAbstand: 1.4
   fachVoll: {r: 1, g: 0, b: 0, a: 1}
   fachLeer: {r: 0, g: 1, b: 0, a: 1}
 --- !u!4 &1232225707
@@ -400,3 +451,4 @@ SceneRoots:
   m_Roots:
   - {fileID: 1232225707}
   - {fileID: 519420032}
+  - {fileID: 4326414}

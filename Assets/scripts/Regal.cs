@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.AI;
 using UnityEngine.UIElements;
@@ -22,9 +23,39 @@ public class Regal : MonoBehaviour
     private List<GameObject> faecher_links;  
     private List<GameObject> faecher_rechts;  
 
+    public List<GameObject> get_faecher_links()
+    {
+        return faecher_links;
+    }
+
+    public List<GameObject> get_faecher_rechts()
+    {
+        return faecher_rechts ;
+    }
     public int get_faecher_count()
     {
         return faecher_count;
+    }
+
+    public List<Fach> get_all_empty_faecher()
+    {
+        if (faecher_links == null) faecher_links = new List<GameObject>();
+        if (faecher_rechts == null) faecher_rechts = new List<GameObject>();
+        List<GameObject> alle_faecher = faecher_links.Concat(faecher_rechts).ToList();
+        
+        List<Fach> alle_leeren_faecher = new List<Fach>();
+
+        for (int i = 0; i < alle_faecher.Count; i++)
+        {
+            if (alle_faecher[i].GetComponent<Fach>().istFrei())
+            {
+                alle_leeren_faecher.Add(alle_faecher[i].gameObject.GetComponent<Fach>());
+            }
+        }
+
+
+        return alle_leeren_faecher;
+
     }
 
     public void set_idx(int idx)
@@ -38,7 +69,7 @@ public class Regal : MonoBehaviour
 
         // Berechnung der Mittelposition des Regals, um den Versatz zu berücksichtigen
         Vector3 regalMittelpunkt = transform.position;
-
+        int fachIdx = 0;
         for (int x = 0; x < faecher_x; x++)
         {
             for (int y = 0; y < faecher_y; y++)
@@ -55,6 +86,9 @@ public class Regal : MonoBehaviour
                     float fach_tiefe = manager.fachTiefe; // oder eine variable Tiefe
                     GameObject fach = Instantiate(fachPrefab, fachPosition, Quaternion.identity);
 
+                    Fach fachScript = fach.GetComponent<Fach>();
+                    fachScript.init(regalIdx,y,z);
+
                     // Setze die Skalierung, aber berechne den Versatz für die Position
                     fach.transform.localScale = new Vector3(fach_tiefe, manager.fach_size, manager.fach_size);
 
@@ -68,6 +102,7 @@ public class Regal : MonoBehaviour
 
                     // Wende den Versatz an, sodass das Fach immer noch an der richtigen Stelle bleibt
                     fach.transform.position = fach.transform.position + versatz;
+                    
 
                     // Setze das Fach als Kind des Regals
                     fach.transform.SetParent(transform);
@@ -75,6 +110,7 @@ public class Regal : MonoBehaviour
                     // Füge das Fach zur Liste hinzu
                     faecher.Add(fach);
                     faecher_count++;
+                    fachIdx ++;
                 }
             }
         }
@@ -127,13 +163,13 @@ public class Regal : MonoBehaviour
         {
             spawn_linke_faecher();
         }
+
+
+
         else
         {
             spawn_linke_faecher();
             spawn_rechte_faecher();
         }
-
-
-        
     }
 }
