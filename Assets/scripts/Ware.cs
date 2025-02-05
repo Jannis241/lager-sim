@@ -1,9 +1,10 @@
 using System;
 using UnityEngine;
 
-[Serializable] // Macht die Klasse im Inspector sichtbar
+[Serializable]
 public class Ware
 {
     public string name; 
-    public int anzahl; 
+    public int anzahl;
+    public Color farbe;
 }

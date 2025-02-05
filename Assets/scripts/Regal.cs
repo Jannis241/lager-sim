@@ -28,6 +28,8 @@ public class Regal : MonoBehaviour
         return faecher_links;
     }
 
+    public int get_faecher_z() { return faecher_z; }
+
     public List<GameObject> get_faecher_rechts()
     {
         return faecher_rechts ;
@@ -35,6 +37,21 @@ public class Regal : MonoBehaviour
     public int get_faecher_count()
     {
         return faecher_count;
+    }
+
+    public Fach get_fach(int index, int seite)
+    {
+        if (seite == -1)
+        {
+            return faecher_links[index].gameObject.GetComponent<Fach>();
+        }
+        if (seite == 1)
+        {
+
+            return faecher_rechts[index].gameObject.GetComponent<Fach>();
+        }
+
+        return null;
     }
 
     public List<Fach> get_all_empty_faecher()
@@ -62,6 +79,8 @@ public class Regal : MonoBehaviour
     {
         regalIdx = idx;
     }
+
+    public int get_faecher_y() { return faecher_y; }
 
     private List<GameObject> spawn_faecher_seite(Vector3 basePosition, Vector3 directionX, Vector3 directionY, Vector3 directionZ, bool isLeftSide)
     {

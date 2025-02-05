@@ -7,27 +7,36 @@ public class Fach : MonoBehaviour
 {
     private GameObject manager;
     private Manager managerScript;
-    private int fachIdx = 0; // welches fach das ist
-    private int etage = 0;
-    private int regalIdx = 0; // in welchem regal  
-    private String item = null; // item in dem fach 
-    Renderer objRenderer;
-    
-    private void Start()
+    public int fachIdx = 0; // welches fach das ist
+    public int etage = 0;
+    public int regalIdx = 0; // in welchem regal  
+    public String item;
+    private Color itemFarbe;
+    private Renderer objRenderer;
+    public void init(int regalIdx_, int etage_, int fachIdx_)
     {
-        objRenderer = GetComponent<Renderer>();
         manager = GameObject.FindGameObjectWithTag("Manager");
         managerScript = manager.GetComponent<Manager>();
+
+        item = null;
+        itemFarbe = managerScript.fachLeer;
+
+        objRenderer = GetComponent<Renderer>();
         objRenderer.material.color = managerScript.fachLeer;
+
+        regalIdx = regalIdx_;
+        fachIdx = fachIdx_;
+        etage = etage_;
     }
+
 
     public void auslagern()
     {
         item = null;
+        itemFarbe = managerScript.fachLeer;
         objRenderer.material.color = managerScript.fachLeer;
 
     }
-
     public int getFachIdx() { return fachIdx; }
     public int getRegalIdx() { return regalIdx; }
     public int get_etage() { return etage; }
@@ -37,19 +46,15 @@ public class Fach : MonoBehaviour
         return item == null;
     }
 
-    public void setItem(String name)
+    public void setItem(String name, Color farbe)
     {
-        objRenderer.material.color = managerScript.fachVoll;
+        objRenderer.material.color = farbe;
+        itemFarbe = farbe;
         item = name;
     }
 
-    public void init(int regalIdx_, int etage_, int fachIdx_)
-    {
-        regalIdx = regalIdx_;
-        fachIdx = fachIdx_;
-        etage = etage_;
-    }
-           
 
     public String getItemName() { return item; }
+    public Color getItemFarbe() { return itemFarbe; }
+    
 }

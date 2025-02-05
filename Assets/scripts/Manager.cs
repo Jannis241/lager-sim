@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using System.Data;
 
 public class Manager : MonoBehaviour
 {
@@ -11,47 +12,57 @@ public class Manager : MonoBehaviour
 
     private int faecher_count = 0;
 
+    public List<Ware> warenListe;
+    public Mode sortierungsMode;
+    private Manager manager;
+
+    public enum Mode
+    {
+        Random,
+        Smart,
+    }
 
 
     [Header("Roboter")]
     public GameObject roboterPrefab;
     public float roboterProzentAnzahl = .33f;
+    [Range(0.01f, 50f)]public float roboterBeladungsDelay = 10f;
+    [Range(0.01f, 20f)]public float roboterSleepDelay = 2f;
 
-    [Range(0.0f, 3f)] private float roboterSize;
-    [Range(0.5f, 3f)] public float roboterSpeed = 1f;
+    private float roboterSize;
+    [Range(0.001f, 50f)] public float roboterSpeed = 1f;
     [Header("Roboter Boden")]
     public GameObject roboterBodenPrefab;
-    [Range(0.001f, 1)] public float dicke;
+    [Range(0.001f, .5f)] public float dicke;
     public Color farbe;
 
     [Header("Kamera")]
     public GameObject cam;
-    [Range(5, 100)] public float camHeightSpawnOffset = 10;
-    [Range(-20, 20)] public float camDepthSpawnOffset = -10;
+    [Range(-20, 20)] public float camHeightSpawnOffset = 10;
+    [Range(-50, 50)] public float camDepthSpawnOffset = -10;
     [Range(0.5f, 5)] public float lookSpeed = 2f;
-    [Range(3, 50)] public float moveSpeed = 10f;
-    [Range(1, 20)] public float verticalSpeed = 5f;
+    [Range(3, 25)] public float moveSpeed = 10f;
+    [Range(1, 10)] public float verticalSpeed = 5f;
 
     [Header("Boden")]
     public GameObject bodenPrefab;
-    [Range(10, 500)] public int bodenPufferX = 100;
-    [Range(10, 500)] public int bodenPufferZ = 100;
+    [Range(50, 100)] public int bodenPufferX = 100;
+    [Range(50, 100)] public int bodenPufferZ = 100;
 
     [Header("Regal Einstellungen")]
     public GameObject regalPrefab;
     public Color regalFarbe;
-    [Range(2, 500)] public int regalAnzahl = 3;
-    [Range(0.1f, 10.0f)] public float regalBreite = 2.0f;
-    [Range(1f, 1000.0f)] public float regalHoehe = 6.0f;
-    [Range(1f, 1000.0f)] public float regalLaenge = 10.0f;
-    [Range(0.1f, 20.0f)] public float regalAbstand = 6.0f;
+    [Range(2, 50)] public int regalAnzahl = 3;
+    [Range(0.1f, 5.0f)] public float regalBreite = 2.0f;
+    [Range(1f, 100.0f)] public float regalHoehe = 6.0f;
+    [Range(1f, 100.0f)] public float regalLaenge = 10.0f;
+    [Range(0.1f, 10.0f)] public float regalAbstand = 6.0f;
 
     [Header("Fächer Einstellungen")]
     public GameObject fachPrefab;
-    [Range(0.001f, 10.0f)] public float fach_size = 1f;
+    [Range(0.001f, 2.0f)] public float fach_size = 1f;
     [Range(0.001f, 0.5f)] public float fachTiefe = 0.1f;
-    [Range(0.001f, 5.0f)] public float fachAbstand = 2.0f;
-    public Color fachVoll = Color.red;
+    [Range(0.001f, 4.0f)] public float fachAbstand = 2.0f;
     public Color fachLeer = Color.green;
 
     private List<GameObject> regale = new List<GameObject>();
@@ -64,6 +75,7 @@ public class Manager : MonoBehaviour
 
     private List<GameObject> alle_roboter = new List<GameObject>();
 
+    public List<GameObject> get_regale() {  return regale; }
     public void random_einsortieren(List<Ware> items)
     {
         int ware_anzahl = 0;
@@ -72,7 +84,9 @@ public class Manager : MonoBehaviour
         }
         if (ware_anzahl > faecher_count)
         {
-            Debug.LogError("ACHTUNG: LAGER IST ZU KLEIN FÜR DIE MENGE AN WARE");
+            Debug.LogError("ACHTUNG: LAGER IST ZU KLEIN FÜR DIE MENGE AN WARE!");
+            Debug.LogError("Ware anzahl:" + ware_anzahl);
+            Debug.LogError("fächer anzahl:" + faecher_count);
 
         }
         else
@@ -90,16 +104,16 @@ public class Manager : MonoBehaviour
                         List<Fach> faecher = regale[j].GetComponent<Regal>().get_all_empty_faecher(); 
 
                         for (int k = 0; k < faecher.Count; k++)
+
                         {
                             alle_faecher.Add(faecher[k]);
                         }
 
                     }
+                    Fach fach = alle_faecher[UnityEngine.Random.Range(0, alle_faecher.Count)];
 
-                    Fach fach;
-
-                    fach = alle_faecher[UnityEngine.Random.Range(0, alle_faecher.Count)];
-                    fach.setItem(item.name);
+                    fach.setItem(item.name, item.farbe);
+                    
 
                 }
 
@@ -119,14 +133,22 @@ public class Manager : MonoBehaviour
     }
 
 
-    private void robot_test()
+    private IEnumerator robot_test(GameObject roboterObject, int loops)
     {
-        GameObject robot_object = alle_roboter[UnityEngine.Random.Range(0, alle_roboter.Count)];
+        Roboter robot = roboterObject.GetComponent<Roboter>();
 
-        Roboter robot = robot_object.GetComponent<Roboter>();
 
-        robot.go_to_fach(1, 2);
+        for (int i = 0; i < loops; i++)
+        {
+            int etage = UnityEngine.Random.Range(0, Mathf.FloorToInt(regale[0].gameObject.GetComponent<Regal>().get_faecher_y()));
+            int fach = UnityEngine.Random.Range(0, Mathf.FloorToInt(regale[0].gameObject.GetComponent<Regal>().get_faecher_z()));
+            int seite = UnityEngine.Random.Range(0, 2) == 0 ? -1 : 1;
+
+            yield return StartCoroutine(robot.go_to_fach(etage, fach, seite));
+        }
     }
+
+
 
     void Start()
     {
@@ -145,13 +167,29 @@ public class Manager : MonoBehaviour
         spawn_regale();
         spawn_boden();
         spawn_roboter();
-
-        Debug.Log("Lager Kapazität: " + faecher_count);
         
 
 
-        robot_test();
+        if (sortierungsMode == Mode.Random)
+        {
+            random_einsortieren(warenListe);
+        }
+        if (sortierungsMode == Mode.Smart)
+        {
+            smart_einsortieren(warenListe);
+        }
+
+        Debug.Log("Lager Kapazität: " + faecher_count);
+
+
+
+        // Starte die Bewegungen aller Roboter gleichzeitig
+        foreach (GameObject roboterObject in alle_roboter)
+        {
+            StartCoroutine(robot_test(roboterObject, 10));
+        }
     }
+
     public float getRoboSize()
     {
         return roboterSize;
