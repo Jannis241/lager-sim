@@ -5,13 +5,31 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using System.Data;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 public class Manager : MonoBehaviour
 {
+    private Queue<RobotOrder> auftragsWarteschlange = new Queue<RobotOrder>();
 
+    private struct RobotOrder
+    {
+        public int RegalIdx;
+        public int Etage;
+        public int FachIdx;
+        public int Seite;
+
+        public RobotOrder(int regalIdx, int etage, int fachIdx, int seite)
+        {
+            RegalIdx = regalIdx;
+            Etage = etage;
+            FachIdx = fachIdx;
+            Seite = seite;
+        }
+    }
 
     private int faecher_count = 0;
 
+    [Header("Bestellung")]
     public List<Ware> warenListe;
     public Mode sortierungsMode;
     private Manager manager;
@@ -22,6 +40,10 @@ public class Manager : MonoBehaviour
         Smart,
     }
 
+    [Header("Item")]
+    public GameObject itemPrefab;
+    public bool item_drop_rotation = false;
+    public bool item_hitbox = true;
 
     [Header("Roboter")]
     public GameObject roboterPrefab;
@@ -30,7 +52,7 @@ public class Manager : MonoBehaviour
     [Range(0.01f, 20f)]public float roboterSleepDelay = 2f;
 
     private float roboterSize;
-    [Range(0.001f, 50f)] public float roboterSpeed = 1f;
+    [Range(0.001f, 1000f)] public float roboterSpeed = 1f;
     [Header("Roboter Boden")]
     public GameObject roboterBodenPrefab;
     [Range(0.001f, .5f)] public float dicke;
@@ -46,8 +68,8 @@ public class Manager : MonoBehaviour
 
     [Header("Boden")]
     public GameObject bodenPrefab;
-    [Range(50, 100)] public int bodenPufferX = 100;
-    [Range(50, 100)] public int bodenPufferZ = 100;
+    [Range(50, 1000)] public int bodenPufferX = 100;
+    [Range(50, 1000)] public int bodenPufferZ = 100;
 
     [Header("Regal Einstellungen")]
     public GameObject regalPrefab;
@@ -74,6 +96,39 @@ public class Manager : MonoBehaviour
     private GameObject roboterBodenParent;
 
     private List<GameObject> alle_roboter = new List<GameObject>();
+
+
+    // Ganz oben in der Manager-Klasse (als neues Feld)
+    private Dictionary<int, bool> aufzugLocks = new Dictionary<int, bool>();
+
+    // In Start() oder Awake() initialisieren (hier in Awake() vor dem Spawn)
+    void Awake()
+    {
+        // Für jede Gasse (hier nehmen wir an, dass die Gassen von 0 bis regalAnzahl-1 gehen)
+        for (int i = 0; i < regalAnzahl; i++)
+        {
+            aufzugLocks[i] = false;
+        }
+    }
+
+    // Reserviert den Aufzug in der gegebenen Gasse.
+    // Liefert true, wenn reserviert werden konnte, andernfalls false.
+    public bool ReserveAufzug(int gasse)
+    {
+        if (!aufzugLocks[gasse])
+        {
+            aufzugLocks[gasse] = true;
+            return true;
+        }
+        return false;
+    }
+
+    // Gibt den Aufzug in der gegebenen Gasse wieder frei.
+    public void ReleaseAufzug(int gasse)
+    {
+        aufzugLocks[gasse] = false;
+    }
+
 
     public List<GameObject> get_regale() {  return regale; }
     public void random_einsortieren(List<Ware> items)
@@ -133,18 +188,117 @@ public class Manager : MonoBehaviour
     }
 
 
-    private IEnumerator robot_test(GameObject roboterObject, int loops)
+    private IEnumerator robot_test()
     {
-        Roboter robot = roboterObject.GetComponent<Roboter>();
-
-
-        for (int i = 0; i < loops; i++)
-        {
             int etage = UnityEngine.Random.Range(0, Mathf.FloorToInt(regale[0].gameObject.GetComponent<Regal>().get_faecher_y()));
             int fach = UnityEngine.Random.Range(0, Mathf.FloorToInt(regale[0].gameObject.GetComponent<Regal>().get_faecher_z()));
+            int regal = UnityEngine.Random.Range(0, regalAnzahl);
             int seite = UnityEngine.Random.Range(0, 2) == 0 ? -1 : 1;
+            
 
-            yield return StartCoroutine(robot.go_to_fach(etage, fach, seite));
+            yield return StartCoroutine(send_robot(regal, etage, fach, seite));
+        
+    }
+    public bool ist_etage_besetzt(int gasse, int etage)
+    {
+        foreach(GameObject roboter in alle_roboter)
+        {
+            Roboter robo = roboter.GetComponent<Roboter>();
+            if (robo.get_etage() == etage && robo.get_gasse() == gasse && !robo.ist_frei())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public bool ist_aufzug_besetzt(int gasse)
+    {
+        foreach (GameObject roboter in alle_roboter)
+        {
+            Roboter robo = roboter.GetComponent<Roboter>();
+            if (robo.is_currently_changing_etage && robo.get_gasse() == gasse)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public IEnumerator send_robot(int regalIdx, int etage, int fachIdx, int seite)
+    {
+        int gasse = (regalIdx == 0) ? 0 : (regalAnzahl - 1 == regalIdx ? regalIdx - 1 : (seite == -1 ? regalIdx - 1 : regalIdx));
+
+        List<Roboter> possible_roboter = new List<Roboter>();
+        foreach (GameObject roboter in alle_roboter)
+        {
+            Roboter robo = roboter.GetComponent<Roboter>();
+            if (robo.get_gasse() == gasse && robo.ist_frei())
+            {
+                possible_roboter.Add(robo);
+            }
+        }
+
+        if (possible_roboter.Count > 0 && !ist_etage_besetzt(gasse, etage))
+        {
+            int bestDiff = 100000;
+            Roboter bestRobo = possible_roboter[0];
+            foreach (Roboter roboter in possible_roboter)
+            {
+                int robo_etage = Mathf.RoundToInt(roboter.get_etage());
+                int diff = Mathf.Abs(etage - robo_etage);
+                if (diff < bestDiff)
+                {
+                    bestDiff = diff;
+                    bestRobo = roboter;
+                }
+            }
+
+            // Falls der Auftrag einen Etagenwechsel braucht
+            if (Mathf.RoundToInt(bestRobo.get_etage()) != etage)
+            {
+                // versuche zu reservieren, falls nicht mögich => warteschlange
+                if (!ReserveAufzug(gasse))
+
+                {
+                    auftragsWarteschlange.Enqueue(new RobotOrder(regalIdx, etage, fachIdx, seite));
+                    yield break;
+                }
+                else
+                {
+                    // reservierung nur als test - der roboter reserviert in change etage selber, aufzug also wieder freigeben
+                    ReleaseAufzug(gasse);
+                }
+            }
+
+            if (!bestRobo.AssignTask())
+            {
+                auftragsWarteschlange.Enqueue(new RobotOrder(regalIdx, etage, fachIdx, seite));
+                yield break;
+            }
+            yield return StartCoroutine(bestRobo.go_to_fach(etage, fachIdx, seite));
+        }
+        else
+        {
+            auftragsWarteschlange.Enqueue(new RobotOrder(regalIdx, etage, fachIdx, seite));
+            yield break;
+        }
+
+        yield return StartCoroutine(probiere_warteschlange_abzuarbeiten());
+    }
+
+
+
+    private IEnumerator probiere_warteschlange_abzuarbeiten()
+    {
+        while (auftragsWarteschlange.Count > 0)
+        {
+            RobotOrder order = auftragsWarteschlange.Dequeue();
+            yield return StartCoroutine(send_robot(order.RegalIdx, order.Etage, order.FachIdx, order.Seite));
+            
+
+            Debug.Log("Wartende Aufträge: " + auftragsWarteschlange.Count);
         }
     }
 
@@ -152,6 +306,7 @@ public class Manager : MonoBehaviour
 
     void Start()
     {
+
         roboterParent = new GameObject("Roboter");
         bodenParent = new GameObject("Boden");
         regalParent = new GameObject("Regale");
@@ -180,15 +335,38 @@ public class Manager : MonoBehaviour
         }
 
         Debug.Log("Lager Kapazität: " + faecher_count);
-
-
-
-        // Starte die Bewegungen aller Roboter gleichzeitig
-        foreach (GameObject roboterObject in alle_roboter)
-        {
-            StartCoroutine(robot_test(roboterObject, 10));
+        for (int i = 0; i < 100000; i++)
+        { 
+            StartCoroutine(robot_test());
         }
     }
+
+
+    public IEnumerator make_item_drop(Color color, Vector3 pos)
+    {
+        GameObject instance = Instantiate(itemPrefab, pos, Quaternion.identity);
+        Renderer r = instance.GetComponent<Renderer>();
+        r.material.color = color;
+        
+
+        BoxCollider collider = instance.GetComponent<BoxCollider>();
+        collider.enabled = item_hitbox;
+        Rigidbody rb = instance.GetComponent<Rigidbody>();
+        rb.velocity = new Vector3(0, -roboterSpeed / 4, -2); // -2 damit der block bisschen weg fliegt und nicht wieder ins regal fällt
+        if (item_drop_rotation)
+        {
+            rb.angularVelocity = new Vector3(UnityEngine.Random.Range(-2f, 2f), UnityEngine.Random.Range(-2f, 2f), UnityEngine.Random.Range(-2f, 2f)); // Zufällige Rotation
+        }
+
+
+
+        while (instance.transform.position.y > -1)
+        {
+            yield return null;
+        }
+        Destroy(instance);
+    }
+
 
     public float getRoboSize()
     {
@@ -282,3 +460,4 @@ public class Manager : MonoBehaviour
         }
     }
 }
+

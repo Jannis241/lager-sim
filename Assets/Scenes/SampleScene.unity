@@ -260,26 +260,35 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   warenListe:
   - name: Gelb
-    anzahl: 250
+    anzahl: 200
     farbe: {r: 1, g: 0.75991255, b: 0, a: 0}
   - name: Blau
-    anzahl: 250
-    farbe: {r: 0.0061826706, g: 0, b: 1, a: 0}
+    anzahl: 200
+    farbe: {r: 0, g: 0.11084986, b: 1, a: 0}
   - name: Rot
-    anzahl: 250
-    farbe: {r: 1, g: 0.009412543, b: 0, a: 0}
-  - name: Purple
-    anzahl: 250
-    farbe: {r: 1, g: 0, b: 0.8081136, a: 0}
-  - name: "T\xFCrkis"
-    anzahl: 250
-    farbe: {r: 0, g: 0.96870255, b: 1, a: 0}
+    anzahl: 200
+    farbe: {r: 1, g: 0.18196456, b: 0, a: 0}
+  - name: fufu
+    anzahl: 200
+    farbe: {r: 1, g: 0, b: 0.76872206, a: 0}
+  - name: dede
+    anzahl: 200
+    farbe: {r: 0.10438527, g: 0.3018868, b: 0, a: 0}
+  - name: olli
+    anzahl: 200
+    farbe: {r: 0.26415092, g: 0.23576753, b: 0.03862584, a: 0}
+  - name: "t\xFCrkis"
+    anzahl: 50
+    farbe: {r: 0, g: 0.91580486, b: 1, a: 0}
   sortierungsMode: 0
+  itemPrefab: {fileID: 4985646283057053229, guid: 8103eeeaa2f16ec459f83b8766daa738, type: 3}
+  item_drop_rotation: 0
+  item_hitbox: 1
   roboterPrefab: {fileID: 5333352959780213515, guid: 25e6675ae273fe6438d764e73b4b2499, type: 3}
-  roboterProzentAnzahl: 0.8
+  roboterProzentAnzahl: 0.3333333
   roboterBeladungsDelay: 2
   roboterSleepDelay: 0.2
-  roboterSpeed: 10
+  roboterSpeed: 18
   roboterBodenPrefab: {fileID: 107598632477295094, guid: afad6d4af1b935043a1eb2294874ec36, type: 3}
   dicke: 0.105
   farbe: {r: 0.5377358, g: 0.5377358, b: 0.5377358, a: 0.22745098}
@@ -290,11 +299,11 @@ MonoBehaviour:
   moveSpeed: 10
   verticalSpeed: 5
   bodenPrefab: {fileID: 378602862102938852, guid: c1993b6291bf0394c867eb438610b331, type: 3}
-  bodenPufferX: 50
-  bodenPufferZ: 50
+  bodenPufferX: 400
+  bodenPufferZ: 400
   regalPrefab: {fileID: 2634436964969735479, guid: f2f9fec781500384c86137d14878430a, type: 3}
   regalFarbe: {r: 1, g: 1, b: 1, a: 0}
-  regalAnzahl: 6
+  regalAnzahl: 7
   regalBreite: 2.17
   regalHoehe: 23
   regalLaenge: 61

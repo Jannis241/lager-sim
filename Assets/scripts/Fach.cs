@@ -11,7 +11,7 @@ public class Fach : MonoBehaviour
     public int etage = 0;
     public int regalIdx = 0; // in welchem regal  
     public String item;
-    private Color itemFarbe;
+    public Color itemFarbe;
     private Renderer objRenderer;
     public void init(int regalIdx_, int etage_, int fachIdx_)
     {
